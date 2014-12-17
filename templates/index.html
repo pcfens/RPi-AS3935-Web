@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Lightning Sensor</title>
+  <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    namespace = '/lightning_sensor';
+
+    var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+
+    socket.on('lightning', function(msg) {
+      if (msg.type == 'strike'){
+        $('#log').append('<li>Lightning strike (' + msg.distance + 'km)</li>');
+      } else if (msg.type == 'fault') {
+        $('#log').append('<li>A fault.</li>');
+      } else if (msg.type == 'message') {
+        $('#log').append('<li>' + msg.text + '</li>');
+      }
+    });
+
+  </script>
+</head>
+<body>
+  <h1>Lightning Sensor Data</h1>
+  <div id="information">
+    <ul>
+      <span id="log"></span>
+    </ul>
+  </div>
+</body>
+</html>
