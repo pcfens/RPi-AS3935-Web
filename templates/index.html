@@ -31,35 +31,62 @@
                 <div id="navbar" class="collapse navbar-collapse">
                     <ul class="nav navbar-nav">
                         <li class="active"><a href="#">Home</a></li>
+                        <li><a href="https://github.com/pcfens/RaspberryPi-AS3935">AS3935 Library</a></li>
                     </ul>
                 </div><!--/.nav-collapse -->
             </div>
         </nav> 
-
         <div class="container">
-            <div class="data">
-                <ul>
-                    <span id="log"></span>
-                </ul>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-condensed">
+                        <thread>
+                            <tr>
+                                <th>Time</th>
+                                <th>Distance</th>
+                            </tr>
+                        </thread>
+                        <tbody id="log"></tbody>
+                    </table> 
+                </div>
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Sensor Settings</h3>
+                        </div>
+                        <div class="panel-body">
+                            {% if settings.disturber %}
+                            <p>Disturbers <span id="disturber" class="label label-success">Masked</span></p>
+                            {% else %}
+                            <p>Disturbers <span id="disturber" class="label label-primary">Unmasked</span></p>
+                            {% endif %}
+                            <p>Noise Floor <span id="noise-floor" class="badge">{{settings.noise_floor}}</span></p>
+                            <p>Minimum Strikes <span id="noise-floor" class="badge">{{settings.min_strikes}}</span></p>
+                            {% if settings.indoors %}
+                            <p class="label label-default">Indoors</p>
+                            {% else %}
+                            <p class="label label-info">Outdoors</p>
+                            {% endif %}
+                        </div>
+                    </div>
             </div>
         </div>
         <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
         <script type="text/javascript" charset="utf-8">
             namespace = '/lightning_sensor';
-
             var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
-
             socket.on('lightning', function(msg) {
                 if (msg.type == 'strike'){
-                    $('#log').append('<li>Lightning strike (' + msg.distance + 'km)</li>');
-                } else if (msg.type == 'fault') {
-                    $('#log').append('<li>A fault.</li>');
+                    $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.distance + ' km</td></tr>');
+                } else if (msg.type == 'noise') {
+                    $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>Noise</td></tr>');
+                } else if (msg.type == 'disturber') {
+                    $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>Disturber</td></tr>');
                 } else if (msg.type == 'message') {
-                    $('#log').append('<li>' + msg.text + '</li>');
+                    $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.text + '</td></tr>');
                 }
             });
-
         </script>
     </body>
 </html>
