@@ -48,15 +48,11 @@
                 namespace = '/lightning_sensor';
                 var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
 
-                socket.on('lightning', function(msg) {
+                socket.on('sensor-interrupt', function(msg) {
                     if (msg.type == 'strike'){
-                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.distance + ' km</td></tr>');
-                    } else if (msg.type == 'noise') {
-                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>Noise</td></tr>');
-                    } else if (msg.type == 'disturber') {
-                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>Disturber</td></tr>');
-                    } else if (msg.type == 'message') {
-                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.text + '</td></tr>');
+                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.distance + '</td></tr>');
+                    } else if (msg.type == 'message' || msg.type == 'disturber' || msg.type == 'noise') {
+                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.message + '</td></tr>');
                     }
                 });
             });

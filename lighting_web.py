@@ -26,8 +26,10 @@ event_history = list()
 def register_strike(channel):
     timestamp = datetime.datetime.now().strftime(date_format)
     time.sleep(0.004)
+
     global sensor, event_history
     reason = sensor.get_interrupt()
+
     if reason == 0x08:
         data = { 
                     'type': 'strike',
@@ -35,41 +37,30 @@ def register_strike(channel):
                     'timestamp': timestamp,
                }
 
-        event_history.append(data)
-        event_history = event_history[-5:]
-
-        socketio.emit('lightning',
-                      data,
-                      namespace='/lightning_sensor'
-                     )
-
     elif reason == 0x04:
         data = {
                     'type': 'disturber',
+                    'message': 'Disturber',
                     'timestamp': timestamp,
                }
-
-        event_history.append(data)
-        event_history = event_history[-5:]
-
-        socketio.emit('lightning',
-                      data,
-                      namespace='/lightning_sensor'
-                     )
 
     elif reason == 0x01:
         data = { 
                     'type': 'noise',
+                    'message': 'Noise',
                     'timestamp': timestamp,
                }
 
+    try:
         event_history.append(data)
         event_history = event_history[-5:]
 
-        socketio.emit('lightning',
+        socketio.emit('sensor-interrupt',
                       data,
                       namespace='/lightning_sensor'
                      )
+    except Exception:
+        pass
 
 GPIO.setup(17, GPIO.IN)
 GPIO.add_event_detect(17, GPIO.RISING, callback=register_strike)
@@ -85,6 +76,7 @@ def index():
     settings['indoors'] = sensor.get_indoors()
     settings['min_strikes'] = sensor.get_min_strikes()
     settings['noise_floor'] = sensor.get_noise_floor()
+
     return render_template('index.html', settings=settings)
 
 @socketio.on('connect', namespace='/lightning_sensor')
@@ -93,10 +85,10 @@ def connected():
     for event in event_history:
         emit('lightning', event)
 
-    emit('lightning', 
+    emit('sensor-interrupt', 
             {
                 'type': 'message', 
-                'text': 'Connected',
+                'message': 'Connected',
                 'timestamp': timestamp,
             })
 
