@@ -21,34 +21,53 @@ sensor.set_indoors(True)
 sensor.set_noise_floor(0)
 sensor.calibrate(tun_cap=tun_cap)
 
+event_history = list()
+
 def register_strike(channel):
     timestamp = datetime.datetime.now().strftime(date_format)
     time.sleep(0.004)
-    global sensor
+    global sensor, event_history
     reason = sensor.get_interrupt()
     if reason == 0x08:
-        socketio.emit('lightning', 
-                      { 
-                        'type': 'strike',
-                        'distance': sensor.get_distance(),
-                        'timestamp': timestamp,
-                      },
+        data = { 
+                    'type': 'strike',
+                    'distance': sensor.get_distance(),
+                    'timestamp': timestamp,
+               }
+
+        event_history.append(data)
+        event_history = event_history[-5:]
+
+        socketio.emit('lightning',
+                      data,
                       namespace='/lightning_sensor'
                      )
+
     elif reason == 0x04:
+        data = {
+                    'type': 'disturber',
+                    'timestamp': timestamp,
+               }
+
+        event_history.append(data)
+        event_history = event_history[-5:]
+
         socketio.emit('lightning',
-                      { 
-                        'type': 'disturber',
-                        'timestamp': timestamp,
-                      },
+                      data,
                       namespace='/lightning_sensor'
                      )
+
     elif reason == 0x01:
+        data = { 
+                    'type': 'noise',
+                    'timestamp': timestamp,
+               }
+
+        event_history.append(data)
+        event_history = event_history[-5:]
+
         socketio.emit('lightning',
-                      { 
-                        'type': 'noise',
-                        'timestamp': timestamp,
-                      },
+                      data,
                       namespace='/lightning_sensor'
                      )
 
@@ -71,6 +90,9 @@ def index():
 @socketio.on('connect', namespace='/lightning_sensor')
 def connected():
     timestamp = datetime.datetime.now().strftime(date_format)
+    for event in event_history:
+        emit('lightning', event)
+
     emit('lightning', 
             {
                 'type': 'message', 
