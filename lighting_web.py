@@ -4,22 +4,20 @@ from flask.ext.socketio import SocketIO, emit
 from RPi_AS3935 import RPi_AS3935
 import RPi.GPIO as GPIO
 import time, datetime
+import ConfigParser
 
 GPIO.setmode(GPIO.BCM)
 
-tun_cap = 0x0F
-bus = 0
-date_format = '%H:%M:%S'
-sensor_address = 0x00
+config = ConfigParser.RawConfigParser()
+config.read('settings.cfg')
 
-# Rev. 1 Raspberry Pis should leave bus set at 0, while rev. 2 Pis should set
-# bus equal to 1. The address should be changed to match the address of the
-# sensor. (Common implementations are in README.md)
-sensor = RPi_AS3935(address=sensor_address, bus=bus)
+date_format = config.get('interface', 'date_format')
+
+sensor = RPi_AS3935( address=int(config.get('as3935', 'address'), 0), bus=config.getint('pi', 'bus') )
 
 sensor.set_indoors(True)
 sensor.set_noise_floor(0)
-sensor.calibrate(tun_cap=tun_cap)
+sensor.calibrate(tun_cap=int(config.get('as3935', 'tuning_cap'), 0) )
 
 event_history = list()
 
@@ -76,6 +74,7 @@ def index():
     settings['indoors'] = sensor.get_indoors()
     settings['min_strikes'] = sensor.get_min_strikes()
     settings['noise_floor'] = sensor.get_noise_floor()
+    settings['read_only'] = config.getboolean('interface', 'read_only')
 
     return render_template('index.html', settings=settings)
 
