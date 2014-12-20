@@ -45,7 +45,7 @@ portions to match your setup. Each setting has comments to help.
 ## Running the Server
 
 After everything is done, you can start the server by running `sudo python lightning_web.py`. If
-everything starts without any errors, you can visit http://<raspberry pi>:<port>/ to interact
+everything starts without any errors, you can visit `http://pi_address:port/` to interact
 with the sensor (the default port is 5000).
 
 An upstart/systemd job to start the server on boot will likely come later - we're just not there
