@@ -11,12 +11,12 @@ GPIO.setmode(GPIO.BCM)
 config = ConfigParser.RawConfigParser()
 config.read('settings.cfg')
 
+editable_fields = ['disturber', 'noise-floor', 'min-strikes', 'indoors']
+
 date_format = config.get('interface', 'date_format')
 
 sensor = RPi_AS3935( address=int(config.get('as3935', 'address'), 0), bus=config.getint('pi', 'bus') )
 
-sensor.set_indoors(True)
-sensor.set_noise_floor(0)
 sensor.calibrate(tun_cap=int(config.get('as3935', 'tuning_cap'), 0) )
 
 event_history = list()
@@ -75,6 +75,7 @@ def index():
     settings['min_strikes'] = sensor.get_min_strikes()
     settings['noise_floor'] = sensor.get_noise_floor()
     settings['read_only'] = config.getboolean('interface', 'read_only')
+    settings['editable_fields'] = editable_fields
 
     return render_template('index.html', settings=settings)
 
@@ -90,6 +91,43 @@ def connected():
                 'message': 'Connected',
                 'timestamp': timestamp,
             })
+
+@socketio.on('adjust-setting', namespace='/lightning_sensor')
+def adjust_setting(json):
+    response = { 'setting': json['setting'] }
+    if config.getboolean('interface', 'read_only'):
+        pass
+    else:
+        if json['setting'] == 'disturber':
+            disturber = not sensor.get_mask_disturber()
+            sensor.set_mask_disturber(disturber)
+            response['state'] = 'Masked' if disturber else 'Unmasked'
+
+        elif json['setting'] == 'indoors':
+            indoors = not sensor.get_indoors()
+            sensor.set_indoors(indoors)
+            response['state'] = 'Indoors' if indoors else 'Outdoors'
+
+        elif json['setting'] == 'noise-floor':
+            noise_floor = sensor.get_noise_floor()
+            noise_floor = (noise_floor + 1) % 8
+            sensor.set_noise_floor(noise_floor)
+            response['state'] = sensor.get_noise_floor()
+
+        elif json['setting'] == 'min-strikes':
+            min_strikes = sensor.get_min_strikes()
+            if min_strikes == 1:
+                sensor.set_min_strikes(5)
+            elif min_strikes == 5:
+                sensor.set_min_strikes(9)
+            elif min_strikes == 9:
+                sensor.set_min_strikes(16)
+            elif min_strikes == 16:
+                sensor.set_min_strikes(1)
+
+            response['state'] = sensor.get_min_strikes()
+
+        emit('adjust-setting', response, broadcast=True)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

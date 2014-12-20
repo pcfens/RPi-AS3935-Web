@@ -30,9 +30,9 @@
                             <p>Noise Floor <span id="noise-floor" class="badge">{{settings.noise_floor}}</span></p>
                             <p>Minimum Strikes <span id="min-strikes" class="badge">{{settings.min_strikes}}</span></p>
                             {% if settings.indoors %}
-                            <p class="label label-default">Indoors</p>
+                            <p id="indoors" class="label label-default">Indoors</p>
                             {% else %}
-                            <p class="label label-info">Outdoors</p>
+                            <p id="indoors" class="label label-info">Outdoors</p>
                             {% endif %}
                         </div>
                     </div>
@@ -55,6 +55,18 @@
                         $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.message + '</td></tr>');
                     }
                 });
+
+                socket.on('adjust-setting', function(msg) {
+                    $('#' + msg.setting).text(msg.state);
+                });
+
+                {%- if not settings.read_only -%}
+                {%- for field in settings.editable_fields -%}
+                $('#{{ field }}').click(function() {
+                    socket.emit('adjust-setting', {setting: '{{ field }}'} )
+                });
+                {%- endfor -%}
+                {%- endif -%}
             });
         </script>
 {% endblock %}
