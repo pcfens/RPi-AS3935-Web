@@ -1,7 +1,7 @@
 Flask==0.10.1
 Flask-SocketIO==0.4.3
 Jinja2==2.7.3
-RPi-AS3935==0.0.5
+RPi-AS3935==0.0.8
 RPi.GPIO==0.5.8
 Werkzeug==0.9.6
 gevent==1.0.1
