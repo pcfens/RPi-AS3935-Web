@@ -3,7 +3,8 @@ from flask import Flask, render_template
 from flask.ext.socketio import SocketIO, emit
 from RPi_AS3935 import RPi_AS3935
 import RPi.GPIO as GPIO
-import time, datetime
+import time
+import datetime
 import ConfigParser
 
 GPIO.setmode(GPIO.BCM)
@@ -15,11 +16,12 @@ editable_fields = ['disturber', 'noise-floor', 'min-strikes', 'indoors']
 
 date_format = config.get('interface', 'date_format')
 
-sensor = RPi_AS3935( address=int(config.get('as3935', 'address'), 0), bus=config.getint('pi', 'bus') )
+sensor = RPi_AS3935(address=int(config.get('as3935', 'address'), 0), bus=config.getint('pi', 'bus'))
 
-sensor.calibrate(tun_cap=int(config.get('as3935', 'tuning_cap'), 0) )
+sensor.calibrate(tun_cap=int(config.get('as3935', 'tuning_cap'), 0))
 
 event_history = list()
+
 
 def register_strike(channel):
     timestamp = datetime.datetime.now().strftime(date_format)
@@ -29,25 +31,25 @@ def register_strike(channel):
     reason = sensor.get_interrupt()
 
     if reason == 0x08:
-        data = { 
-                    'type': 'strike',
-                    'distance': sensor.get_distance(),
-                    'timestamp': timestamp,
-               }
+        data = {
+            'type': 'strike',
+            'distance': sensor.get_distance(),
+            'timestamp': timestamp,
+        }
 
     elif reason == 0x04:
         data = {
-                    'type': 'disturber',
-                    'message': 'Disturber',
-                    'timestamp': timestamp,
-               }
+            'type': 'disturber',
+            'message': 'Disturber',
+            'timestamp': timestamp,
+        }
 
     elif reason == 0x01:
-        data = { 
-                    'type': 'noise',
-                    'message': 'Noise',
-                    'timestamp': timestamp,
-               }
+        data = {
+            'type': 'noise',
+            'message': 'Noise',
+            'timestamp': timestamp,
+        }
 
     try:
         event_history.append(data)
@@ -56,7 +58,8 @@ def register_strike(channel):
         socketio.emit('sensor-interrupt',
                       data,
                       namespace='/lightning_sensor'
-                     )
+                      )
+
     except Exception:
         pass
 
@@ -66,6 +69,7 @@ GPIO.add_event_detect(17, GPIO.RISING, callback=register_strike)
 app = Flask(__name__, static_url_path='/static')
 app.config['SECRET_KEY'] = 'super secret key!'
 socketio = SocketIO(app)
+
 
 @app.route('/')
 def index():
@@ -79,22 +83,24 @@ def index():
 
     return render_template('index.html', settings=settings)
 
+
 @socketio.on('connect', namespace='/lightning_sensor')
 def connected():
     timestamp = datetime.datetime.now().strftime(date_format)
     for event in event_history:
         emit('lightning', event)
 
-    emit('sensor-interrupt', 
-            {
-                'type': 'message', 
-                'message': 'Connected',
-                'timestamp': timestamp,
-            })
+    emit('sensor-interrupt',
+         {
+             'type': 'message',
+             'message': 'Connected',
+             'timestamp': timestamp,
+         })
+
 
 @socketio.on('adjust-setting', namespace='/lightning_sensor')
 def adjust_setting(json):
-    response = { 'setting': json['setting'] }
+    response = {'setting': json['setting']}
     if config.getboolean('interface', 'read_only'):
         pass
     else:
