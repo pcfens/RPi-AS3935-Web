@@ -82,7 +82,7 @@ def index():
     settings['read_only'] = config.getboolean('interface', 'read_only')
     settings['editable_fields'] = editable_fields
     settings['debug_mode'] = debug_mode
-    settings['units' ] = config.get('interface', 'units')
+    settings['units'] = config.get('interface', 'units')
 
     return render_template('index.html', settings=settings)
 
