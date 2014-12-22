@@ -54,8 +54,18 @@ yet (feel free to submit a PR).
 ### Scaling
 
 Running the server this way does not scale well beyond a few connections. If you need to
-support more users, I'd suggest looking in to gunicorn, and possibly nginx (keep in
-mind that you need special settings to support WebSockets).
+support more users, I'd suggest looking in to gunicorn, and possibly nginx (configuration
+information at https://flask-socketio.readthedocs.org/en/latest/).
+
+I've tested running the site with gunicorn using the command
+```
+sudo gunicorn \
+--worker-class socketio.sgunicorn.GeventSocketIOWorker \
+--bind :5000 \
+lightning_web:app \
+--log-file -
+```
+Just ignore the exception it throws early on for now (it appears to be a bug in gunicorn).
 
 If you still have scaling issues (how many people care about lightning at your house anyway?),
 then things need to be re-designed. At this point you should probably be pushing the data
