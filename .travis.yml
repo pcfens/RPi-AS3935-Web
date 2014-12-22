@@ -7,3 +7,4 @@ script:
   - "pep8 --ignore=E501 lighting_web.py"
 notifications:
   email: false
+sudo: false
