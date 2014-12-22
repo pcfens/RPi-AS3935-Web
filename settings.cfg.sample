@@ -1,3 +1,6 @@
+; Global configuration settings for the AS3935 web interface
+; Changes require a reload/restart
+
 [pi]
 ; Rev. 1 Raspberry Pis should leave bus set at 0, while rev. 2 Pis should set
 ; bus equal to 1.
@@ -11,6 +14,10 @@ date_format = %H:%M:%S
 ; Can changes be made to the sensor settings via the web (there is no
 ; authentication yet)
 read_only = false
+
+; Debug mode enables the simulate lightning button as well as extra output
+; in the console.
+debug_mode = true
 
 [as3935]
 ; Set the i2c address of lightning sensor

@@ -23,17 +23,20 @@
                         </div>
                         <div class="panel-body">
                             {% if settings.disturber %}
-                            <p>Disturbers <span id="disturber" class="label label-success">Masked</span></p>
+                            <p>Disturbers <span id="disturber" class="label label-default">Masked</span></p>
                             {% else %}
-                            <p>Disturbers <span id="disturber" class="label label-primary">Unmasked</span></p>
+                            <p>Disturbers <span id="disturber" class="label label-default">Unmasked</span></p>
                             {% endif %}
                             <p>Noise Floor <span id="noise-floor" class="badge">{{settings.noise_floor}}</span></p>
                             <p>Minimum Strikes <span id="min-strikes" class="badge">{{settings.min_strikes}}</span></p>
                             {% if settings.indoors %}
                             <p id="indoors" class="label label-default">Indoors</p>
                             {% else %}
-                            <p id="indoors" class="label label-info">Outdoors</p>
+                            <p id="indoors" class="label label-default">Outdoors</p>
                             {% endif %}
+                            {%- if settings.debug_mode -%}
+                            <p><span id="test-lightning" class="label label-info">Simulate Lightning</span></p>
+                            {%- endif %}
                         </div>
                     </div>
                 </div>
@@ -66,6 +69,11 @@
                     socket.emit('adjust-setting', {setting: '{{ field }}'} )
                 });
                 {%- endfor -%}
+                {%- endif -%}
+                {% if settings.debug_mode %}
+                $('#test-lightning').click(function() {
+                    socket.emit('simulate-lightning', {create: 'lightning' } )
+                });
                 {%- endif -%}
             });
         </script>

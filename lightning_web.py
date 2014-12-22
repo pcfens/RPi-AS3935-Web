@@ -6,6 +6,11 @@ import RPi.GPIO as GPIO
 import time
 import datetime
 import ConfigParser
+from random import randint
+
+app = Flask(__name__, static_url_path='/static')
+app.config['SECRET_KEY'] = 'super secret key!'
+socketio = SocketIO(app)
 
 GPIO.setmode(GPIO.BCM)
 
@@ -17,10 +22,10 @@ editable_fields = ['disturber', 'noise-floor', 'min-strikes', 'indoors']
 date_format = config.get('interface', 'date_format')
 
 sensor = RPi_AS3935(address=int(config.get('as3935', 'address'), 0), bus=config.getint('pi', 'bus'))
-
 sensor.calibrate(tun_cap=int(config.get('as3935', 'tuning_cap'), 0))
 
 event_history = list()
+debug_mode = config.getboolean('interface', 'debug_mode')
 
 
 def register_strike(channel):
@@ -66,10 +71,6 @@ def register_strike(channel):
 GPIO.setup(17, GPIO.IN)
 GPIO.add_event_detect(17, GPIO.RISING, callback=register_strike)
 
-app = Flask(__name__, static_url_path='/static')
-app.config['SECRET_KEY'] = 'super secret key!'
-socketio = SocketIO(app)
-
 
 @app.route('/')
 def index():
@@ -80,6 +81,7 @@ def index():
     settings['noise_floor'] = sensor.get_noise_floor()
     settings['read_only'] = config.getboolean('interface', 'read_only')
     settings['editable_fields'] = editable_fields
+    settings['debug_mode'] = debug_mode
 
     return render_template('index.html', settings=settings)
 
@@ -96,6 +98,26 @@ def connected():
              'message': 'Connected',
              'timestamp': timestamp,
          })
+
+
+@socketio.on('simulate-lightning', namespace='/lightning_sensor')
+def simulate_lightning(json):
+    global event_history
+    timestamp = datetime.datetime.now().strftime(date_format)
+
+    data = {
+        'type': 'strike',
+        'distance': randint(0, 15),
+        'timestamp': timestamp,
+        }
+
+    event_history.append(data)
+    event_history = event_history[-5:]
+
+    emit('sensor-interrupt',
+         data,
+         broadcast=True,
+         )
 
 
 @socketio.on('adjust-setting', namespace='/lightning_sensor')
@@ -137,6 +159,5 @@ def adjust_setting(json):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    if port == 5000:
-        app.debug = True
+    app.debug = debug_mode
     socketio.run(app, host='0.0.0.0', port=port)
