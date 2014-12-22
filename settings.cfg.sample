@@ -11,6 +11,9 @@ bus = 0
 ; Follow the format at https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 date_format = %H:%M:%S
 
+; Unit system to use - allowed values are metric and us
+units = us
+
 ; Can changes be made to the sensor settings via the web (there is no
 ; authentication yet)
 read_only = false

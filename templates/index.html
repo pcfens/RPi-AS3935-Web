@@ -48,21 +48,26 @@
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
         <script type="text/javascript" charset="utf-8">
             $(function() {
+                units = '{{ settings.units }}';
                 namespace = '/lightning_sensor';
                 var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
-
                 socket.on('sensor-interrupt', function(msg) {
                     if (msg.type == 'strike'){
-                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.distance + '</td></tr>');
+                        var distance = msg.distance
+                        if(units == 'us'){
+                            distance = (distance*0.621).toFixed(1);
+                            unit = ' mi.';
+                        } else {
+                            unit = ' km';
+                        }
+                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + distance + unit + '</td></tr>');
                     } else if (msg.type == 'message' || msg.type == 'disturber' || msg.type == 'noise') {
                         $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.message + '</td></tr>');
                     }
                 });
-
                 socket.on('adjust-setting', function(msg) {
                     $('#' + msg.setting).text(msg.state);
                 });
-
                 {%- if not settings.read_only -%}
                 {%- for field in settings.editable_fields -%}
                 $('#{{ field }}').click(function() {
