@@ -4,7 +4,7 @@ python:
 install:
   - pip install pep8
 script:
-  - "pep8 --ignore=E501 lighting_web.py"
+  - "pep8 --ignore=E501 lightning_web.py"
 notifications:
   email: false
 sudo: false

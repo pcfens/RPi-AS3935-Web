@@ -109,7 +109,7 @@ def simulate_lightning(json):
         'type': 'strike',
         'distance': randint(0, 15),
         'timestamp': timestamp,
-        }
+    }
 
     event_history.append(data)
     event_history = event_history[-5:]
