@@ -2,3 +2,7 @@ body {
   padding-top: 70px;
   padding-bottom: 30px;
 }
+.limited-height {
+  overflow-y: auto;
+  height: 40rem;
+}
