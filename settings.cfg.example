@@ -1,0 +1,30 @@
+; Global configuration settings for the AS3935 web interface
+; Changes require a reload/restart
+
+[interface]
+; The format desired when printing timestamps in the UI
+; Follow the format at https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
+date_format = %H:%M:%S
+
+; Unit system to use - allowed values are metric and us
+units = us
+
+; Can changes be made to the sensor settings via the web (there is no
+; authentication yet)
+read_only = false
+
+[as3935]
+; Is the lightning sensor directly attached to the machine this
+; is running on.
+attached = true
+
+; Set the i2c address of lightning sensor
+address = 0x00
+
+; The value needed to tune the sensor
+tuning_cap = 0x0F
+
+[pi]
+; Rev. 1 Raspberry Pis should leave bus set at 0, while rev. 2 Pis should set
+; bus equal to 1.
+bus = 0

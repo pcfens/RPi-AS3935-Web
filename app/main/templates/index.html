@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Lightning Sensor{% endblock %}
+
+{% block content %}
+            <div class="row">
+              <div class="col-md-6 limited-height">
+                <table class="table table-condensed">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Message</th>
+                    </tr>
+                  </thead>
+                  <tbody id="log">
+                  </tbody>
+                </table>
+                </div>
+                {% if settings.attached %}
+                <div class="col-md-6">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h3 class="panel-title">Sensor Settings</h3>
+                      </div>
+                      <div class="panel-body">
+                        {% if settings.disturber %}
+                        <p>Disturbers <span id="disturber" class="label label-default">Masked</span></p>
+                        {% else %}
+                        <p>Disturbers <span id="disturber" class="label label-default">Unmasked</span></p>
+                        {% endif %}
+                        <p>Noise Floor <span id="noise-floor" class="badge">{{settings.noise_floor}}</span></p>
+                        <p>Minimum Strikes <span id="min-strikes" class="badge">{{settings.min_strikes}}</span></p>
+                        {% if settings.indoors %}
+                        <p id="indoors" class="label label-default">Indoors</p>
+                        {% else %}
+                        <p id="indoors" class="label label-default">Outdoors</p>
+                        {% endif %}
+                        {%- if settings.debug_mode -%}
+                        <p><span id="test-lightning" class="label label-info">Simulate Lightning</span></p>
+                        {%- endif %}
+                      </div>
+                    </div>
+                  </div>
+               {% endif %}
+            </div>
+{% endblock %}
+
+{% block javascript %}
+        <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+        <script type="text/javascript" charset="utf-8">
+            namespace = '/lightning_sensor';
+            var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+            $(function() {
+                units = '{{ settings.units }}';
+                socket.on('sensor-interrupt', function(msg) {
+                    if (msg.type == 'strike'){
+                        var distance = msg.distance
+                        if(units == 'us'){
+                            distance = (distance*0.621).toFixed(1);
+                            unit = ' mi.';
+                        } else {
+                            unit = ' km';
+                        }
+                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + distance + unit + '</td></tr>');
+                    } else if (msg.type == 'message' || msg.type == 'disturber' || msg.type == 'noise') {
+                        $('#log').append('<tr><td>' + msg.timestamp  + '</td><td>' + msg.message + '</td></tr>');
+                    }
+                });
+            });
+            {%- if settings.attached -%}
+            socket.on('adjust-setting', function(msg) {
+              $('#' + msg.setting).text(msg.state);
+            });
+            {%- if not settings.read_only -%}
+            {%- for field in settings.editable_fields -%}
+            $('#{{ field }}').click(function() {
+              socket.emit('adjust-setting', {setting: '{{ field }}'} )
+            });
+            {%- endfor -%}
+            {%- endif -%}
+            {%- endif -%}
+        </script>
+{% endblock %}
