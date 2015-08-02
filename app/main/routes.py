@@ -21,4 +21,9 @@ if settings['attached']:
 
 @main.route('/')
 def index():
+    if settings['attached']:
+        settings['disturber'] = sensor.get_mask_disturber()
+        settings['indoors'] = sensor.get_indoors()
+        settings['min_strikes'] = sensor.get_min_strikes()
+        settings['noise_floor'] = sensor.get_noise_floor()
     return render_template('index.html', settings=settings)
