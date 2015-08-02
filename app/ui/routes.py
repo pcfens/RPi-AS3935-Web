@@ -1,5 +1,5 @@
 from flask import render_template, url_for, request
-from . import main
+from . import ui
 from .. import config
 
 if config.getboolean('as3935', 'attached'):
@@ -19,7 +19,7 @@ if settings['attached']:
     settings['min_strikes'] = sensor.get_min_strikes()
     settings['noise_floor'] = sensor.get_noise_floor()
 
-@main.route('/')
+@ui.route('/')
 def index():
     if settings['attached']:
         settings['disturber'] = sensor.get_mask_disturber()

@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-main = Blueprint('main',
+ui = Blueprint('ui',
     __name__,
     template_folder='templates',
     static_folder='static',

@@ -11,10 +11,10 @@ config.read('settings.cfg')
 if config.getboolean('as3935', 'attached'):
     import as3935
 
-from .main import main as main_blueprint
+from .ui import ui as ui_blueprint
 from .api import api_bp as api_blueprint
 
-app.register_blueprint(main_blueprint)
+app.register_blueprint(ui_blueprint)
 app.register_blueprint(api_blueprint)
 
 app.debug = config.getboolean('interface', 'debug_mode')
