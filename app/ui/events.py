@@ -4,7 +4,8 @@ import datetime
 from .. import config
 
 # Is this right? Should we implement it all via an API?
-from ..as3935 import sensor
+if config.getboolean('as3935', 'attached'):
+    from ..as3935 import sensor
 
 date_format = config.get('interface', 'date_format')
 
