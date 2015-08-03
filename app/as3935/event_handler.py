@@ -38,9 +38,9 @@ def register_strike(channel):
             'timestamp': timestamp,
         }
 
-    try:
-        for remote in remote_endpoints:
+    for remote in remote_endpoints:
+        try:
             r = requests.post(remote, data=data)
 
-    except Exception:
-        pass
+        except Exception:
+            pass
