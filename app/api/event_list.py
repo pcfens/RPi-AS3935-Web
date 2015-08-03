@@ -1,9 +1,7 @@
 from flask_restful import reqparse, Resource, Api, fields, marshal, abort
 from flask.ext.socketio import emit
 from .. import socketio
-from .. import config
 from . import api
-import datetime
 
 parser = reqparse.RequestParser()
 parser.add_argument('type')
